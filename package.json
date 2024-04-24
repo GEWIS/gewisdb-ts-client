@@ -1,0 +1,49 @@
+{
+  "name": "gewisdb-ts-client",
+  "description": "Typescript client for the GEWISDB API",
+  "version": "0.0.1",
+  "private": true,
+  "main": "dist/index.js",
+  "license": "AGPL-3.0-or-later",
+  "scripts": {
+    "build": "tsc",
+    "gen": "openapi-generator-cli generate -i openapi.yaml -g typescript-axios -o ./src/",
+    "swagger:validate": "swagger-cli validate ./openapi.yaml",
+    "genbuild": "npm run gen && npm run build && (git add ./src && git add ./dist)",
+    "test": "ts-node-dev --poll ./test/test.ts"
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-cli": "^4.0.4",
+    "@openapitools/openapi-generator-cli": "^2.7.0",
+    "@types/node": "^18.7.7",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "eslint": "^8.55.0",
+    "eslint-config-airbnb-typescript": "^17.1.0",
+    "eslint-plugin-chai-expect": "^3.0.0",
+    "eslint-plugin-chai-friendly": "^0.7.1",
+    "eslint-plugin-header": "^3.1.1",
+    "eslint-plugin-import": "^2.29.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GEWIS/gewisdb-ts-client.git"
+  },
+  "files": [
+    "src/",
+    "dist/",
+    "index.js",
+    "swagger.json"
+  ],
+  "author": "GEWIS ABC",
+  "bugs": {
+    "url": "https://github.com/GEWIS/gewisdb-ts-client/issues"
+  },
+  "homepage": "https://github.com/GEWIS/gewisdb-ts-client#readme",
+  "dependencies": {
+    "axios": "^1.6.3",
+    "swagger-axios-codegen": "^0.16.4",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^4.9.5"
+  }
+}

@@ -1,0 +1,311 @@
+openapi: 3.0.3
+info:
+  title: GEWISDB API
+  description: |-
+    The GEWIS member database has a few available endpoints
+  termsOfService: https://gewis.nl
+  contact:
+    email: abc@gewis.nl
+  license:
+    name: GNU GENERAL PUBLIC LICENSE Version 3
+    url: https://github.com/GEWIS/gewisdb/blob/main/LICENSE.txt
+  version: 86c08a87afe939cbb9a515f7063965f7bdb30bce
+externalDocs:
+  description: Contribute to this API
+  url: https://github.com/GEWIS/gewisdb
+servers:
+  - url: https://database.gewis.nl/api
+    description: Production environment
+  - url: https://database.test.gewis.nl/api
+    description: Test environment
+  - url: http://localhost/api
+    description: Local environment
+tags:
+  - name: basic
+  - name: members
+    description: Obtain information about members
+    externalDocs:
+      description: MemberModel
+      url: https://gewis.github.io/gewisdb/classes/Database-Model-Member.html
+
+paths:
+  /:
+    get:
+      summary: Health endpoint
+      description: This endpoint will return the health status of the API
+      tags:
+        - basic
+      responses:
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/health'
+        403:
+          $ref: '#/components/responses/no_permission'
+      security:
+        - api_auth:
+            - HealthR
+
+  /members:
+    get:
+      summary: Get members
+      description: Get all members
+      tags:
+        - members
+      parameters:
+        - name: includeOrgans
+          in: query
+          required: false
+          description: Whether to include organ memberships in the response. By default, organs are not included due to rather long computation time.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        200:
+          description: Succesful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Member'
+        403:
+          $ref: '#/components/responses/no_permission'
+      security:
+        - api_auth:
+            - MembersR
+
+  /members/{lidnr}:
+    get:
+      summary: Get a member
+      description: Get a specific member
+      tags:
+        - members
+      parameters:
+        - name: lidnr
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 8000
+      responses:
+        200:
+          description: Succesful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/MemberSimple'
+        204:
+          description: Member not found
+        403:
+          $ref: '#/components/responses/no_permission'
+      security:
+        - api_auth:
+            - MembersR
+
+  /members/active:
+    get:
+      summary: Get active members
+      description: Get all members that are currently installed in at least one organ
+      tags:
+        - members
+      parameters:
+        - name: includeInactive
+          in: query
+          required: false
+          description: Whether to include inactive fraternity members in the response. If a member is both an active member in another type and inactive in a fraternity, they also get returned (including possibly their inactive organ memberships).
+          schema:
+            type: boolean
+            default: false
+      responses:
+        200:
+          description: Succesful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Member'
+        403:
+          $ref: '#/components/responses/no_permission'
+      security:
+        - api_auth:
+            - MembersActiveR
+
+components:
+  schemas:
+    health:
+      type: object
+      properties:
+        healthy:
+          type: boolean
+    MemberSimple:
+      type: object
+      required:
+        - lidnr
+      properties:
+        lidnr:
+          type: integer
+          format: int32
+          example: 8000
+          minimum: 0
+        full_name:
+          type: string
+          example: Timo de Teststudent
+        initials:
+          type: string
+          example: T.
+        given_name:
+          type: string
+          example: Timo
+        middle_name:
+          type: string
+          example: de
+        family_name:
+          type: string
+          example: Teststudent
+        generation:
+          type: integer
+          example: 2022
+        hidden:
+          type: boolean
+          example: false
+        deleted:
+          type: boolean
+          example: false
+        expiration:
+          type: string
+          format: date
+          description: Date in the Y-m-d\TH:i:sP format
+          example: "2023-07-01T00:00:00+02:00"
+    MemberExtendedOrgan:
+      allOf:
+        - $ref: '#/components/schemas/MemberSimple'
+        - type: object
+          properties:
+            organs:
+              type: array
+              nullable: true
+              items:
+                $ref: '#/components/schemas/OrganMembership'
+    MemberExtendedKeyholder:
+      allOf:
+        - $ref: '#/components/schemas/MemberSimple'
+        - type: object
+          properties:
+            keyholder:
+              type: boolean
+    MemberExtendedEmail:
+      allOf:
+        - $ref: '#/components/schemas/MemberSimple'
+        - type: object
+          properties:
+            email:
+              type: string
+              format: email
+              nullable: true
+              example: example@gewis.nl
+    MemberExtendedType:
+      allOf:
+        - $ref: '#/components/schemas/MemberSimple'
+        - type: object
+          properties:
+            membership_type:
+              type: string
+              enum: [ordinary, external, graduate, honorary]
+    MemberExtendedBirthDate:
+      allOf:
+        - $ref: '#/components/schemas/MemberSimple'
+        - type: object
+          properties:
+            birthdate:
+              type: string
+              format: date
+              description: Date in the Y-m-d\TH:i:sP format
+              example: "2023-07-01T00:00:00+02:00"
+            is_16_plus:
+              type: boolean
+              description: Whether the member is at least 16 years old
+            is_18_plus:
+              type: boolean
+              description: Whether the member is at least 18 years old
+            is_21_plus:
+              type: boolean
+              description: Whether the member is at least 21 years old
+    Member:
+      description: "If the client holds the `OrgansMembershipR` or `MemberProperty*` permissions, a (combination of) MemberExtended object(s), else MemberSimple"
+      oneOf:
+        - $ref: '#/components/schemas/MemberExtendedBirthDate'
+        - $ref: '#/components/schemas/MemberExtendedEmail'
+        - $ref: '#/components/schemas/MemberExtendedOrgan'
+        - $ref: '#/components/schemas/MemberExtendedKeyholder'
+        - $ref: '#/components/schemas/MemberExtendedType'
+        - $ref: '#/components/schemas/MemberSimple'
+    OrganMembership:
+      type: object
+      properties:
+        organ:
+          $ref: '#/components/schemas/Organ'
+        function:
+          type: string
+          example: Lid
+        installDate:
+          type: string
+          format: date
+          description: Date in the Y-m-d\TH:i:sP format
+          example: "0001-01-01T00:00:00+00:00"
+        dischargeDate:
+          type: string
+          format: date
+          description: Date in the Y-m-d\TH:i:sP format
+          example: null
+          nullable: true
+        current:
+          type: boolean
+    Organ:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        abbreviation:
+          type: string
+          example: Testorgaan
+  responses:
+    no_permission:
+      description: The token that was used does not have the required permissions
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                default: "error"
+              error:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    default: "User\\Model\\Exception\\NotAllowed"
+                  message:
+                    type: string
+                    example: "Permission `...` is needed but is not currently held."
+
+  securitySchemes:
+    api_auth:
+      type: http
+      description: GEWIS API principal token
+      scheme: bearer
+      bearerFormat: FF
