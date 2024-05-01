@@ -9,7 +9,7 @@ info:
   license:
     name: GNU GENERAL PUBLIC LICENSE Version 3
     url: https://github.com/GEWIS/gewisdb/blob/main/LICENSE.txt
-  version: 86c08a87afe939cbb9a515f7063965f7bdb30bce
+  version: 61a3f816c126d454d7bd665dd6788f9d7a619961
 externalDocs:
   description: Contribute to this API
   url: https://github.com/GEWIS/gewisdb
@@ -33,6 +33,26 @@ paths:
     get:
       summary: Health endpoint
       description: This endpoint will return the health status of the API
+      deprecated: true
+      tags:
+        - basic
+      responses:
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/health'
+        403:
+          $ref: '#/components/responses/no_permission'
+      security:
+        - api_auth:
+            - HealthR
+
+  /health:
+    get:
+      summary: Health endpoint
+      description: This endpoint will return the health status of the API and whether client applications are requested to temporarily pause their synchronisation.
       tags:
         - basic
       responses:
@@ -102,7 +122,7 @@ paths:
                 type: object
                 properties:
                   data:
-                    $ref: '#/components/schemas/MemberSimple'
+                    $ref: '#/components/schemas/Member'
         204:
           description: Member not found
         403:
@@ -150,6 +170,10 @@ components:
       properties:
         healthy:
           type: boolean
+        sync_paused:
+          type: boolean
+          default: false
+          description: Attribute to indicate that data is currently being modified and that client applications that perform syncs in the background are requested to temporarily suspend this sync.
     MemberSimple:
       type: object
       required:
@@ -189,6 +213,13 @@ components:
           format: date
           description: Date in the Y-m-d\TH:i:sP format
           example: "2023-07-01T00:00:00+02:00"
+    MemberAllAttributes:
+      allOf:
+        - $ref: '#/components/schemas/MemberExtendedOrgan'
+        - $ref: '#/components/schemas/MemberExtendedKeyholder'
+        - $ref: '#/components/schemas/MemberExtendedEmail'
+        - $ref: '#/components/schemas/MemberExtendedType'
+        - $ref: '#/components/schemas/MemberExtendedBirthDate'
     MemberExtendedOrgan:
       allOf:
         - $ref: '#/components/schemas/MemberSimple'
@@ -246,6 +277,7 @@ components:
     Member:
       description: "If the client holds the `OrgansMembershipR` or `MemberProperty*` permissions, a (combination of) MemberExtended object(s), else MemberSimple"
       oneOf:
+        - $ref: '#/components/schemas/MemberAllAttributes'
         - $ref: '#/components/schemas/MemberExtendedBirthDate'
         - $ref: '#/components/schemas/MemberExtendedEmail'
         - $ref: '#/components/schemas/MemberExtendedOrgan'
