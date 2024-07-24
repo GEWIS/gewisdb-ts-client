@@ -9,7 +9,7 @@ info:
   license:
     name: GNU GENERAL PUBLIC LICENSE Version 3
     url: https://github.com/GEWIS/gewisdb/blob/main/LICENSE.txt
-  version: 61a3f816c126d454d7bd665dd6788f9d7a619961
+  version: 3.0.1
 externalDocs:
   description: Contribute to this API
   url: https://github.com/GEWIS/gewisdb
@@ -48,7 +48,7 @@ paths:
       security:
         - api_auth:
             - HealthR
-
+            
   /health:
     get:
       summary: Health endpoint
@@ -73,15 +73,15 @@ paths:
       summary: Get members
       description: Get all members
       tags:
-        - members
+       - members
       parameters:
-        - name: includeOrgans
-          in: query
-          required: false
-          description: Whether to include organ memberships in the response. By default, organs are not included due to rather long computation time.
-          schema:
-            type: boolean
-            default: false
+       - name: includeOrgans
+         in: query
+         required: false
+         description: Whether to include organ memberships in the response. By default, organs are not included due to rather long computation time.
+         schema:
+           type: boolean
+           default: false
       responses:
         200:
           description: Succesful response
@@ -90,6 +90,9 @@ paths:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: string
+                    example: "success"
                   data:
                     type: array
                     items:
@@ -105,7 +108,7 @@ paths:
       summary: Get a member
       description: Get a specific member
       tags:
-        - members
+       - members
       parameters:
         - name: lidnr
           in: path
@@ -121,6 +124,9 @@ paths:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: string
+                    example: "success"
                   data:
                     $ref: '#/components/schemas/Member'
         204:
@@ -136,15 +142,15 @@ paths:
       summary: Get active members
       description: Get all members that are currently installed in at least one organ
       tags:
-        - members
+       - members
       parameters:
-        - name: includeInactive
-          in: query
-          required: false
-          description: Whether to include inactive fraternity members in the response. If a member is both an active member in another type and inactive in a fraternity, they also get returned (including possibly their inactive organ memberships).
-          schema:
-            type: boolean
-            default: false
+       - name: includeInactive
+         in: query
+         required: false
+         description: Whether to include inactive fraternity members in the response. If a member is both an active member in another type and inactive in a fraternity, they also get returned (including possibly their inactive organ memberships).
+         schema:
+           type: boolean
+           default: false
       responses:
         200:
           description: Succesful response
@@ -153,6 +159,9 @@ paths:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: string
+                    example: "success"
                   data:
                     type: array
                     items:
@@ -162,12 +171,33 @@ paths:
       security:
         - api_auth:
             - MembersActiveR
-
+  /example404:
+    get:
+      summary: Example 404
+      description: This 404 will be returned if there is a mistake in the requested path
+      tags:
+        - errors
+      responses:
+        404:
+          $ref: '#/components/responses/not_found_route'
+  /example500:
+    get:
+      summary: Example 500
+      description: This 500 will be returned if there is a mistake in the requested path
+      tags:
+        - errors
+      responses:
+        500:
+          $ref: '#/components/responses/server_error'
+          
 components:
   schemas:
     health:
       type: object
       properties:
+        status:
+          type: string
+          example: "success"
         healthy:
           type: boolean
         sync_paused:
@@ -208,6 +238,7 @@ components:
         deleted:
           type: boolean
           example: false
+          description: Always false unless the API principal has MembersDeleted permission
         expiration:
           type: string
           format: date
@@ -315,6 +346,44 @@ components:
           type: string
           example: Testorgaan
   responses:
+    server_error:
+      description: There was an error in the server. Most likely, this is a permanent error.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                default: "error"
+              error:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    default: "error-exception"
+                  exception:
+                    type: string
+                    example: "An example exception was thrown"
+    not_found_route:
+      description: This route does not exist (which is different from not finding a specific resource)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                default: "error"
+              error:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    default: "error-router-no-match"
+                  exception:
+                    type: string
+                    example: null
     no_permission:
       description: The token that was used does not have the required permissions
       content:
@@ -324,7 +393,7 @@ components:
             properties:
               status:
                 type: string
-                default: "error"
+                default: "forbidden"
               error:
                 type: object
                 properties:
