@@ -1,0 +1,7 @@
+* text=auto eol=lf
+
+dist/ linguist-generated
+src/ linguist-generated
+
+openapi.yaml linguist-vendored
+

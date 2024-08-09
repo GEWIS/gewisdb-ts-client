@@ -15,7 +15,7 @@
   "devDependencies": {
     "@apidevtools/swagger-cli": "^4.0.4",
     "@openapitools/openapi-generator-cli": "^2.7.0",
-    "@types/node": "^18.7.7",
+    "@types/node": "^20.14.12",
     "@typescript-eslint/eslint-plugin": "^6.17.0",
     "@typescript-eslint/parser": "^6.17.0",
     "eslint": "^8.55.0",

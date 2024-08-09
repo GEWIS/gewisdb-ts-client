@@ -4,13 +4,18 @@ Typescript client for the GEWISDB API
 ## Description
 This repository contains the client for the GEWISDB API. It is built using TypeScript and Axios, and utilizes the Swagger API specification for generating code.
 
+## Requirements
+Install the dependencies:
+1. Switch to the right version of node (usually `nvm install --lts`, `nvm use --lts`)<br/>Use 20.16.0 and up
+2. Install the required version of Java: `sudo apt install openjdk-19-jre-headless`
+
 ## Installation
 To install and use this client, follow these steps:
 1. Clone the repository: `git clone https://github.com/GEWIS/gewisdb-ts-client.git`
 2. Install dependencies: `npm install`
 
 ## Usage
-To build the client, run `npm run gen-build`
+To build the client, run `npm run genbuild`
 This will first generate the TypeScript code under ./src and then generate the necessary files in the `dist/` directory.
 
 ## Example Usage
